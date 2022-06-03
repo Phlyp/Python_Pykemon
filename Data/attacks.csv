@@ -1,0 +1,19 @@
+Type,Attack,against_normal,against_fighting,against_flying,against_poison,against_ground,against_rock,against_bug,against_ghost,against_steel,against_fire,against_water,against_grass,against_electric,against_psychic,against_ice,against_dragon,against_dark,against_fairy
+normal,Pound,1,1,1,1,1,0.5,1,0,0.5,1,1,1,1,1,1,1,1,1
+fighting,Triple Arrows,2,1,0.5,0.5,1,2,0.5,0,2,1,1,1,1,0.5,2,1,2,0.5
+flying,Wing Attack,1,2,1,1,1,0.5,2,1,0.5,1,1,2,0.5,1,1,1,1,1
+poison,Venoshock,1,1,1,0.5,0.5,0.5,1,0.5,0,1,1,2,1,1,1,1,1,2
+ground,Land's Wrath,1,1,0,2,1,2,0.5,1,2,2,1,0.5,2,1,1,1,1,1
+rock,Stone Axe,1,0.5,2,1,0.5,1,2,1,0.5,2,1,1,1,1,2,1,1,1
+bug,X-Scissor,1,0.5,0.5,0.5,1,1,1,0.5,0.5,0.5,1,2,1,2,1,1,2,0.5
+ghost,Hex,0,1,1,1,1,1,1,2,1,1,1,1,1,2,1,1,0.5,1
+steel,Steel Wing,1,1,1,1,1,2,1,1,0.5,0.5,0.5,1,0.5,1,2,1,1,2
+fire,Flame Charge,1,1,1,1,1,0.5,2,1,2,0.5,0.5,2,1,1,2,0.5,1,1
+water,Water Gun,1,1,1,1,2,2,1,1,1,2,0.5,0.5,1,1,1,0.5,1,1
+grass,Razor Leaf,1,1,0.5,0.5,2,2,0.5,1,0.5,0.5,2,0.5,1,1,1,0.5,1,1
+electric,Thunder Shock,1,1,2,1,0,1,1,1,1,1,2,0.5,0.5,1,1,0.5,1,1
+psychic,Psycho Cut,1,2,1,2,1,1,1,1,0.5,1,1,1,1,0.5,1,1,0,1
+ice,Ice Beam,1,1,2,1,2,1,1,1,0.5,0.5,0.5,2,1,1,0.5,2,1,1
+dragon,Dragon Claw,1,1,1,1,1,1,1,1,0.5,1,1,1,1,1,1,2,1,0
+dark,Bite,1,0.5,1,1,1,1,1,2,1,1,1,1,1,2,1,1,0.5,0.5
+fairy,Fairy Wind,1,2,1,0.5,1,1,1,1,0.5,0.5,1,1,1,1,1,2,2,1
