@@ -1,7 +1,9 @@
 """Module Description
     * module that enables a fight between two pokemon, the player and the bot
+    * includes a class to manage an actively fighting pokemon
+    * includes functions to execute all essential actions when in a pokemon fight 
 
-    author: Phlyp and Novadgaf
+    author: Phlyp, Novadgaf and hipman8
     date: 05.06.2022
     version: 1.0.0
     license: free
@@ -14,69 +16,106 @@ import random
 from database import db_name
 from playerManager import current_player
 import teamManager
+import logging
+
+logger = logging.getLogger("fight")
 
 conn = sqlite3.connect(db_name)
 cursor = conn.cursor()
 
-"""
-class to save some basic information on a pokemon for convenience
-saves the team_id, name and pokedex_number of the pokemon
-contains a method to get and set the hp of the pokemon
-"""
+
 class pokemon:
+    """
+    Class to save some basic information on a pokemon for convenience
+    Saves the team_id, name and pokedex_number of the pokemon
+    Contains a method to get and set the hp of the pokemon
+    """
+    # class variables
     team_id = 0
     name = ""
     pokedex_number = 0
 
+    # constructor
     def __init__(self):
         pass
-    """
-    returns the hp of the pokemon in the team table
 
-    *inputs: none
-    *outputs:
-        health of the pokemon
-    """
+    # class functions
     def get_hp(self):
+        """
+        get_hp Returns the hp of the pokemon in the team table
+
+        Args: None
+
+        Returns:
+            int: health of the pokemon
+        """
+        logger.info(f"getting hp of pokemon {self.team_id}")
         return cursor.execute("SELECT health FROM team WHERE team_id = ?", (self.team_id,)).fetchone()[0]
     
-    """
-    sets the hp of the pokemon in the team table
 
-    *inputs:
-        new_hp: the new hp to write in the team_table entry for the pokemon
-    *outputs: none
-    """
     def set_hp(self, new_hp):
+        """
+        set_hp Sets the hp of the pokemon in the team table
+
+        Args:
+            new_hp (int): new hp to set the hp in the table of the pokemon
+        
+        Returns: None
+
+        Test:
+            * new_hp should be of type int
+            * successful execution should edit hp for the pokemon in the team table 
+        """
+        if type(new_hp) != int:
+            print("Error: parameter should be of type int!")
+            print("Exiting game")
+            logger.error("parameter is not of type int")
+            exit()
+        logger.info(f"setting hp of pokemon {self.team_id} to {new_hp}")
         cursor.execute("UPDATE team SET health = ? WHERE team_id = ?", (new_hp, self.team_id))
         conn.commit()
 
+# initialise pokemon classes
 player_pokemon = pokemon()
 bot_pokemon = pokemon()
 
-"""
-prompts the user to choose a pokemon from his team
-starts by listing all available pokemon
-based on input changes the values of the player_pokemon object
-!only works for the actual player!
 
-*inputs: none
-*outputs: none
-"""
 def choose_pokemon():
+    """
+    choose_pokemon Prompts the user to choose a pokemon from his team
+
+    - Starts by listing all available pokemon
+    - Based on input changes the values of the player_pokemon object
+    - Only works for the actual player!
+
+    Args: None
+
+    Returns: None
+
+    Test:
+        * successful execution should save all relevent data of the chosen pokemon in the player_pokemon class
+        * player input should be between 1-6
+        * pokemon cannot have already fainted
+    """
+    logger.info("choosing pokemon")    
     teamManager.list_team(current_player.id)
 
-    decision = sys.get_number("Please use the Keys 1-6 + ENTER to choose which pokemon to send into battle! ")
-    while decision < 1 or decision > 6:
+    team_size = team_size(current_player.id)
+
+    decision = sys.get_number(f"Please use the Keys 1-{team_size} + ENTER to choose which pokemon to send into battle! ")
+    while decision < 1 or decision > team_size:
+        logger.warning("invalid input given")
         print("Invalid input given!")
-        decision = int(input("Please use the Keys 1-6 + ENTER to choose which pokemon to send into battle! "))
+        decision = int(input(f"Please use the Keys 1-{team_size} + ENTER to choose which pokemon to send into battle! "))
     player_pokemon.team_id = cursor.execute("SELECT team_id FROM team WHERE player_id = ? AND pokemon_order = ?", (current_player.id, decision)).fetchone()[0]
     hp = cursor.execute("SELECT health FROM team WHERE team_id = ?", (player_pokemon.team_id,)).fetchone()[0]
     if hp < 1:
         sys.clear()
+        logger.warning("You can't choose a pokemon who has already fainted!")
         print("You can't choose a pokemon who has already fainted!")
         choose_pokemon()
         return
+    logger.info(f"selecting pokemon {player_pokemon.team_id}")
     cursor.execute("""SELECT pokemon.name FROM team
         INNER JOIN pokemon ON team.pokedex_number = pokemon.pokedex_number 
         WHERE team.team_id = ?""", (player_pokemon.team_id,))
@@ -87,16 +126,25 @@ def choose_pokemon():
         WHERE team.team_id = ?""", (player_pokemon.team_id,))
     player_pokemon.pokedex_number = cursor.fetchone()[0]
 
-"""
-randomly chooses a pokemon for the bot player
-changes the bot_pokemon object
 
-*inputs: none
-*outputs: none
-"""
 def choose_bot_pokemon():
+    """
+    choose_bot_pokemon Randomly chooses a pokemon for the bot player
+
+    changes the values saved in the bot_pokemon object 
+
+    Args: None
+
+    Returns: None
+
+    Test:
+        * successful execution should save all relevent data of the chosen pokemon in the bot_pokemon class
+        * chosen pokemon should have positive hp (cannot already have fainted)
+    """
+    logger.info("choosing bot pokemon")    
     alive_pokemon = cursor.execute("SELECT team_id FROM team WHERE player_id = 0 AND health > 0").fetchall()
     bot_pokemon.team_id = random.choice(alive_pokemon)[0]
+    logger.info(f"bot chose pokemon {bot_pokemon.team_id}")
     cursor.execute("""SELECT pokemon.name FROM 
         team INNER JOIN pokemon ON team.pokedex_number = pokemon.pokedex_number 
         WHERE team.team_id = ?""", (bot_pokemon.team_id,))
@@ -106,20 +154,28 @@ def choose_bot_pokemon():
         WHERE team.team_id = ?""", (bot_pokemon.team_id,))
     bot_pokemon.pokedex_number = cursor.fetchone()[0]
 
-"""
-prompts the user to choose an attack
-starts by getting all available attacks for the player_pokemon
-lists all attacks and waits for input
-checks if there are enough attacks remaining
-calls the attack funcion
-!only works for the player!
 
-*inputs: none
-*outputs:
-    !! binary: returns a 1 if the user chooses to abort the attack process, and a 0 when an attack is completed 
-"""
 def choose_attack():
-    
+    """
+    choose_attack Prompts the user to choose an attack
+
+    - Starts by getting all available attacks for the player_pokemon
+    - Lists all attacks and waits for input
+    - Checks if there are enough attacks remaining
+    - Calls the attack function
+    - Only works for the player!
+
+    Args: None
+
+    Returns:
+        int: (0 or 1) returns a 1 if the user chooses to abort the attack process, and a 0 when an attack is completed 
+
+    Test:
+        * should have different options based on the type of the pokemon
+        * inputs other than 1-3/4 should not be accepted
+        * should correctly execute attack function and return 1 if attack is chosen
+    """
+    logger.info("choosing attack")    
     pokedex_number = player_pokemon.pokedex_number
     (total_light, total_special) = (8,6)
     basic_attack = "Tackle"
@@ -166,6 +222,7 @@ def choose_attack():
             elif decision == "4":
                 return 1
             else:
+                logger.warning("invalid input")
                 print("Invalid Input given!")
     else:
         sys.clear()
@@ -193,24 +250,36 @@ def choose_attack():
             elif decision == "3":
                 return 1
             else:
+                logger.warning("invalid input")
                 print("Invalid Input given!")
     return 0
         
-"""
-performs an attack and inflicts damage on the defending pokemon
-first decrements remaining attack column (light/special)
-then calculates damage based on simplified version of this formula https://bulbapedia.bulbagarden.net/wiki/Damage
-checks if defending_pokemon fainted (hp < 0)
-    if so, calls checkWin() function
-    then calls choose_pokemon or choose_bot_pokemon depending on who the defender was
 
-*inputs:
-    attack_name (string): name of the attack used
-    type (string): type of the attack used
-    attacking_pokemon (pokemon): pokemon object for the pokemon using the attack
-    defending_pokemon (pokemon): pokemon object for the pokemon receiving the attack
-"""
-def attack(attack_name, type, attacking_pokemon=pokemon, defending_pokemon=pokemon):
+def attack(attack_name, type, attacking_pokemon: pokemon, defending_pokemon: pokemon):
+    """
+    attack Performs an attack and inflicts damage on the defending pokemon
+        
+    - First decrements remaining attack column (light/special)
+    - Then calculates damage based on simplified version of this formula https://bulbapedia.bulbagarden.net/wiki/Damage
+    - Checks if defending_pokemon fainted (hp < 0)
+        - if so, calls checkWin() function
+        - then calls choose_pokemon or choose_bot_pokemon depending on who the defender was
+
+    Args:
+        attack_name (string): name of the attack used
+        type (string): type of the attack used
+        attacking_pokemon (pokemon): pokemon object for the pokemon using the attack
+        defending_pokemon (pokemon): pokemon object for the pokemon receiving the attack
+    
+    Returns: None
+
+    Test:
+        * are attack_name and type of type string?
+        * damage is successfully calculated
+        * defending pokemon has correct amount of hp subtracted
+        * if hp goes below 0, a new pokemon has to be chosen and win condition should be checked
+    """
+    logger.info(f"{attacking_pokemon.name} attacks {defending_pokemon.name} with {attack_name}!")       
     sys.clear()
     print(f"{attacking_pokemon.name} used {attack_name}!")
     sys.wait_for_keypress()
@@ -263,6 +332,7 @@ def attack(attack_name, type, attacking_pokemon=pokemon, defending_pokemon=pokem
     # final damage
     damage = int(base_damage * type_damage * critical_mult * random_mult)
     print(f"{attacking_pokemon.name} did {damage} damage!")
+    logger.info(f"{attacking_pokemon.name} did {damage} damage")
     sys.wait_for_keypress()   
 
     # inflict damage
@@ -271,6 +341,7 @@ def attack(attack_name, type, attacking_pokemon=pokemon, defending_pokemon=pokem
     # check if pokemon feinted
     if defending_pokemon.get_hp() <= 0:
         print(f"{defending_pokemon.name} fainted!")
+        logger.info(f"{defending_pokemon.name} fainted!")
         sys.wait_for_keypress()
         defending_player_id = cursor.execute("SELECT player_id FROM team WHERE team_id = ?", (defending_pokemon.team_id,)).fetchone()[0]
 
@@ -285,13 +356,21 @@ def attack(attack_name, type, attacking_pokemon=pokemon, defending_pokemon=pokem
         else:
             choose_bot_pokemon() 
 
-"""
-simple bot attack function that always attacks with a basic tackle move
-
-*inputs: none
-*outputs: none
-"""
 def bot_attack():
+    """
+    bot_attack Bot attack function that chooses the best attack to inflict on the players pokemon
+
+    Only works for an attack from the bot to the players pokemon!
+
+    Args: None
+
+    Returns: None
+
+    Test:
+        * function chooses the attack that inflicts the most damage depending on the respective Types of the pokemon
+        * executes the correct attack function 
+    """
+    logger.info("bot is starting an attack")    
     pokedex_number = cursor.execute("SELECT pokedex_number FROM team WHERE team_id = ?", (bot_pokemon.team_id,)).fetchone()[0]
     basic_damage = cursor.execute("SELECT attack FROM pokemon WHERE pokedex_number = ?", (pokedex_number,)).fetchone()[0]
 
@@ -324,7 +403,7 @@ def bot_attack():
         type2_damage = 0
     
 
-    
+    logger.info("bot chose an attack")
     if max(type1_damage, type2_damage) < 1:
         attack_name = "Tackle"
         type = "basic"
@@ -336,16 +415,25 @@ def bot_attack():
         type = type2
     attack(attack_name, type, bot_pokemon, player_pokemon)
 
-"""
-function to check if all pokemon of a player have already fainted in order to determine if the other player has won
-    if so, prints who won the game and sets the global variable game_over to True
 
-*inputs:
-    player_id (int): id whose team should be checked
-*outputs: 
-    end (boolean): False if the game is not over, True if the game is over
-"""
 def check_win(player_id):
+    """
+    check_win Function to check if all pokemon of a player have already fainted in order to determine if the other player has won
+    
+    If so, prints who won the game and sets the global variable game_over to True
+
+    Args:
+        player_id (int): id whose team should be checked
+
+    Returns:
+        boolean: False if the game is not over, True if the game is over
+
+    Test:
+        * player_id should be of type int
+        * global variable should be successfully accessed and changed
+        * function should effectively recognize if all pokemon in the team have fainted
+    """
+    logger.info("checking if win conditions have been fulfilled")    
     end = True
     hp_values = cursor.execute("SELECT health FROM team WHERE player_id = ?", (player_id,)).fetchall()
     for hp in hp_values:
@@ -355,10 +443,12 @@ def check_win(player_id):
     if end:
         is_bot = cursor.execute("SELECT is_bot FROM players WHERE player_id = ?", (player_id,)).fetchone()[0]
         if is_bot:
+            logger.info("all pokemon in the enemy team fainted, you won!")
             sys.clear()
             print("You Won!")
 
             # calculate win rewards
+            logger.info("calculating win rewards")
 
             alive_pokemon = teamManager.alive_team_size(current_player.id)
             old_xp = cursor.execute("SELECT xp FROM players WHERE player_id = ?", (current_player.id,)).fetchone()[0]
@@ -376,11 +466,12 @@ def check_win(player_id):
                 old_xp = 0
                 lvl = lvl + 1
                 new_dollars = new_dollars + 100
-            print(f"You earned {new_dollars} ddllars")
+            print(f"You earned {new_dollars} dollars")
             new_xp = old_xp + new_xp
             new_dollars = old_dollars + new_dollars
 
             # write win rewards in table
+            logger.info("writing win rewards in table")
             cursor.execute("UPDATE players SET xp = ? WHERE player_id = ?", (new_xp, current_player.id))
             cursor.execute("UPDATE players SET level = ? WHERE player_id = ?", (lvl, current_player.id))
             cursor.execute("UPDATE players SET dollars = ? WHERE player_id = ?", (new_dollars, current_player.id))
@@ -392,6 +483,7 @@ def check_win(player_id):
             sys.wait_for_keypress()
         else:
             sys.clear()
+            logger.info("all pokemon in your team fainted, you lost!")
             print("You Lost!")
             sys.wait_for_keypress()
         global game_over
@@ -399,27 +491,41 @@ def check_win(player_id):
     return end
 
 """
-main loop to manage the fights
 
-starts by creating the bots team and choosing him a pokemon
-resets the players team health and remaing attacks
-prompts the player to choose a pokemon
-
-checks whose pokemon has a higher speed rating, lets that player go first
-
-turn based system: player and bot take turns making their move
-
-player has the option to attack (calls choose_attack) or change their current pokemon (calls choose_pokemon) or run away
-the first to options end the turn, running away goes back to the main menu
-
-the bot always calls bot_attack 
-
-after each turn, the global variable game_over is checked, if True returns user to the main menu
 
 *inputs: none
 *outputs: none
 """
 def fight_engine():
+    """
+    fight_engine Main loop to manage the fights
+
+    - Starts by creating the bots team and choosing him a pokemon
+    - Resets the players team health and remaing attacks
+    - Prompts the player to choose a pokemon
+
+    - Checks whose pokemon has a higher speed rating, lets that player go first
+
+    - Turn based system: player and bot take turns making their move
+
+    - Player has the option to attack (calls choose_attack) or change their current pokemon (calls choose_pokemon) or run away
+    - The first to options end the turn, running away goes back to the main menu
+
+    - The bot always calls bot_attack 
+
+    - After each turn, the global variable game_over is checked, if True returns user to the main menu
+
+    Args: None
+
+    Returns: None
+
+    Test:
+        * inputs other than 1-3 should not be accepted
+        * Pokemon with the higher speed stat should start
+        * if all pokemon have fainted, the game should end
+        * Effective turn based fight system should work
+    """
+    logger.info("starting main fight engine")    
     #initial set up for fight
     teamManager.create_random_team(0)
     choose_bot_pokemon()

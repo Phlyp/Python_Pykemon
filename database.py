@@ -1,7 +1,7 @@
 """Module Description
     * module to initialise and get general information about the entire database used for storing data in this app
 
-    author: Phlyp
+    author: Phlyp, Novadgaf and hipman8
     date: 05.06.2022
     version: 1.0.0
     license: free
@@ -10,7 +10,9 @@
 import os
 import sqlite3 as sdb
 import pandas as pd
+import logging
 
+logger = logging.getLogger("database")
 
 db_name = os.path.join("Data","db.sqlite")
 
@@ -30,7 +32,8 @@ def initialise():
 
     Test: 
         * successful exectution should lead to database with the tables [pokemon, attacks, players, team]
-    """    
+    """ 
+    logger.info("initialising database")   
     pokemon_data = pd.read_csv("Data/pokemon.csv", encoding='utf8')
     pokemon_data.to_sql("pokemon", sqlite_conn, index=False, if_exists="replace")
 
@@ -74,9 +77,11 @@ def table_exists(name):
         * name should be of type string
         * should correctly recognize if table exists or not
     """
+    logger.info(f"checking if table {name} exists")
     if type(name) != str:
         print("Error: parameter should be of type string!")
         print("Exiting game")
+        logger.error("parameter is not of type string")
         exit()
 
     sqlite_cursor.execute(''' SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name=? ''', (name,))
