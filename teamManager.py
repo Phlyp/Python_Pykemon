@@ -17,22 +17,26 @@ import teamSelection as team_sel
 import system_calls as syscal
 import sys
 from playerManager import player_exists
+import os
+import logging
 
 conn = sqlite3.connect(db_name)
 cursor = conn.cursor()
+logger = logging.getLogger("team")
 
 
-class AppTeamSettings(QMainWindow):
+class AppTeamSettings(QWidget):
      # constructor
     def __init__(self, player_id):
         super().__init__()
         self.title = 'team settings'
-        self.left = 900
+        self.left = 190
         self.top = 300
-        self.width = 340
-        self.height = 140
-        self.initUI()
+        self.width = 1575
+        self.height = 450
         self.player_id = player_id
+        self.initUI()
+        
     
     def initUI(self):
         """
@@ -45,37 +49,53 @@ class AppTeamSettings(QMainWindow):
 
         Test:
             * select Edit your team option in the main menu by using the input 2+enter
-        """    
+        """ 
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-    
+        self.layout = QVBoxLayout()
+        self.w = QWidget()
+
         # Create create team button 
-        self.button_choose_team = QPushButton('create team', self)
+        self.button_choose_team = QPushButton('create team', self.w)
         self.button_choose_team.move(20,20)
 
         # Create random team button 
-        self.button_random_team = QPushButton('random team', self)
+        self.button_random_team = QPushButton('random team', self.w)
         self.button_random_team.move(120,20)
 
         # Create list team button 
-        self.button_list_team = QPushButton('list team', self)
+        self.button_list_team = QPushButton('list team', self.w)
         self.button_list_team.move(220,20)
 
         # Create back button 
-        self.button_back = QPushButton('back', self)
+        self.button_back = QPushButton('back', self.w)
         self.button_back.move(20,60)
 
         # Create exit button 
-        self.button_exit = QPushButton('exit game', self)
+        self.button_exit = QPushButton('exit game', self.w)
         self.button_exit.move(120,60)
         
+        
+        self.layout.addWidget(self.button_choose_team)
+        self.layout.addWidget(self.button_random_team)
+        self.layout.addWidget(self.button_list_team)
+        self.layout.addWidget(self.button_back)
+        self.layout.addWidget(self.button_exit)
+
         # connect buttons to functions
         self.button_choose_team.clicked.connect(self.choose_team)
         self.button_random_team.clicked.connect(self.random_team)
         self.button_list_team.clicked.connect(self.list_team)
         self.button_back.clicked.connect(self.back)
         self.button_exit.clicked.connect(self.exit)
-        self.show()
+
+        self.table_widget = QTableWidget()
+        self.table_widget.setRowCount(1)
+        self.table_widget.setColumnCount(6)
+
+        self.list_team()
+        self.setLayout(self.layout) 
+        
 
     def choose_team(self):
         """
@@ -89,8 +109,10 @@ class AppTeamSettings(QMainWindow):
         Test:
             * click create team button 
         """
+        logger.info(f"choosing individual team")
         delete_team(self.player_id)
         self.window = team_sel.App(self.player_id)
+        self.list_team()
 
     def random_team(self):
         """
@@ -104,7 +126,7 @@ class AppTeamSettings(QMainWindow):
         """
         syscal.clear()
         create_random_team(self.player_id)
-        list_team(self.player_id)
+        self.list_team()
 
     def list_team(self):
         """
@@ -118,8 +140,45 @@ class AppTeamSettings(QMainWindow):
         Test:
             * successful execution should list team
         """  
+        logger.info("listing team with icons")
         syscal.clear()
-        list_team(self.player_id)
+        if type(self.player_id) != int:
+            print("Error: player_id should be of type int")
+            print("Exiting game")
+            exit()
+        if team_size(self.player_id) == 0:
+            print("You have no Team! You can create one by choosing either\n 1. Choose your own Team\n 2. Create a random Team")
+            return
+
+        
+        for x in range(6):
+            picture_label = QtWidgets.QLabel()
+            self.table_widget.setCellWidget(0, x, picture_label)
+            self.table_widget.setRowHeight(0, 256)
+            self.table_widget.setColumnWidth(x, 256)
+        cursor.execute("""SELECT pokemon.pokedex_number
+            FROM team INNER JOIN pokemon 
+            ON team.pokedex_number = pokemon.pokedex_number 
+            WHERE team.player_id = ?
+            ORDER BY team.pokemon_order""", (self.player_id,))
+        self.team = cursor.fetchall()
+
+        image_files = [f for f in os.listdir('Data/pokemon_images/pokemon/pokemon') if os.path.isfile(os.path.join('Data/pokemon_images/pokemon/pokemon', f))]
+        for idx, pokedex_id in enumerate(self.team):
+            image_name = str(pokedex_id[0]) + '.png'
+            if image_name not in image_files:
+                for x in image_files:
+                    if (str(pokedex_id[0]) + "-") in x:
+                        image_name = x
+
+            image_path = f'Data/pokemon_images/pokemon/pokemon/{image_name}'
+            pic = QtGui.QPixmap(image_path)
+            picture_label = QtWidgets.QLabel()
+            picture_label.setPixmap(pic)
+            self.table_widget.setCellWidget(0, idx, picture_label)
+            self.table_widget.setRowHeight(0, 256)
+            self.table_widget.setColumnWidth(idx, 256)
+        self.layout.addWidget(self.table_widget)
 
     def back(self):
         """
@@ -133,6 +192,7 @@ class AppTeamSettings(QMainWindow):
         Test:
             * click the back button
         """ 
+        logger.info("back to main menu")
         self.close()
 
     def exit(self):
@@ -147,6 +207,7 @@ class AppTeamSettings(QMainWindow):
         Test:
             * click the exit button
         """ 
+        logger.info("exiting game")
         quit()
 
 def team_settings(player_id):
@@ -159,6 +220,7 @@ def team_settings(player_id):
     Test:
         * select Edit your team in the main menu by using the input 2+enter 
     """ 
+    logger.info("opening team setting GUI")
     app = QApplication(sys.argv)
     window = AppTeamSettings(player_id)
     window.show()
@@ -181,6 +243,7 @@ def add_pokemon_to_team(player_id, pokemon_id, count):
         * pokemon should exist (0 < pokemon_id < 801)
         * successful execution should add 1 new pokemon to team 
     """
+    logger.info(f"adding pokemon {pokemon_id} to team of player {player_id}")
     if type(player_id) != int or type(pokemon_id) != int or type(count) != int:
         print("Error: arguments should all be of type int")
         print("Exiting game")
@@ -219,6 +282,7 @@ def create_random_team(player_id):
         * player should exist
         * successful execution should add 6 new random pokemon to team table  
     """
+    logger.info(f"creating random team for player {player_id}")
     if type(player_id) != int:
         print("Error: player_id should be of type int")
         print("Exiting game")
@@ -231,10 +295,10 @@ def create_random_team(player_id):
     delete_team(player_id)
     if player_id != 0: print("Creating random Team!")
     cursor.execute("SELECT * FROM pokemon")
-    rows = len(cursor.fetchall())
+    
 
     for i in range(6):
-        rand = random.randint(1, rows)
+        rand = random.randint(1, 721)
         cursor.execute("SELECT hp FROM pokemon WHERE pokedex_number = ?", (rand,))
         hp = cursor.fetchone()[0]
         cursor.execute("INSERT OR REPLACE INTO team(player_id, pokemon_order, pokedex_number, health, remaining_light, remaining_special) VALUES(?,?,?,?,?,?)", (player_id, i+1, rand, hp, 8, 6))
@@ -259,6 +323,7 @@ def delete_team(player_id):
         * player_id should be of type int
         * successful execution should delete team of player_id
     """    
+    logger.info(f"deleting team for player {player_id}")
     if type(player_id) != int:
         print("Error: player_id should be of type int")
         print("Exiting game")
@@ -284,12 +349,13 @@ def heal_team(player_id):
         * player should already have a team
         * successful execution should restore hp for the entire team of player_id
     """
+    logger.info(f"healing team for player {player_id}")
     if type(player_id) != int:
         print("Error: player_id should be of type int")
         print("Exiting game")
         exit()
     if team_size(player_id) == 0:
-        print("You have no Team! You can create one by choosing either\n 1. Choose your own Team\n 2. Create a random Team")
+        print("You have no Team!")
         return
 
     cursor.execute("""UPDATE team
@@ -311,7 +377,8 @@ def reset_team(player_id):
         * player_id should be of type int
         * player should already have a team
         * successful execution should reset remaining_light and remaining_special for the entire team of player_id
-    """    
+    """   
+    logger.info(f"resetting team for player {player_id}") 
     if type(player_id) != int:
         print("Error: player_id should be of type int")
         print("Exiting game")
@@ -343,6 +410,7 @@ def list_team(player_id):
         * player should already have a team
         * successful execution should list team
     """    
+    logger.info(f"listing team for player {player_id}")
     if type(player_id) != int:
         print("Error: player_id should be of type int")
         print("Exiting game")
@@ -382,6 +450,7 @@ def team_size(player_id):
         * player should exist
         * successful execution should return the correct size of the team
     """
+    logger.info(f"getting team size for player {player_id}")
     if type(player_id) != int:
         print("Error: player_id should be of type int")
         print("Exiting game")
@@ -411,6 +480,7 @@ def alive_team_size(player_id):
         * player should already have a team
         * successful execution should return the correct size of alive pokemon in the team of the player
     """  
+    logger.info(f"getting amount of pokemon that are willing to fight to death for player {player_id}")
     if type(player_id) != int:
         print("Error: player_id should be of type int")
         print("Exiting game")
