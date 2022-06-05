@@ -11,7 +11,7 @@
 
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 import pandas as pd
 import teamManager as team
 import sqlite3
@@ -328,12 +328,12 @@ class AppPlayerSettings(QMainWindow):
         self.button_delete_all_players = QPushButton('delete all players', self)
         self.button_delete_all_players.move(220,20)
         
-        # Create cancel button 
+        # Create back button 
         self.button_back = QPushButton('back', self)
         self.button_back.move(320,20)
 
-        # Create cancel button 
-        self.button_exit = QPushButton('exit', self)
+        # Create exit button 
+        self.button_exit = QPushButton('exit game', self)
         self.button_exit.move(420,20)
 
         # connect buttons to functions
@@ -398,6 +398,7 @@ class AppPlayerSettings(QMainWindow):
         logger.info("deleting all players")
         cursor.execute("DELETE FROM players WHERE is_bot = 0")
         conn.commit()
+        team.delete_all_teams()
         current_player.name = ""
         self.window = AppCreateNewPlayer()
 
