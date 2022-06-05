@@ -145,6 +145,7 @@ class AppChangePlayer(QWidget):
             current_player.id = id
             current_player.name = cursor.execute("SELECT name FROM players WHERE player_id = ?", (current_player.id,)).fetchone()[0]
             self.close()
+        print(f"chose player {current_player.name}\npress close to continue")
    
 
 """
