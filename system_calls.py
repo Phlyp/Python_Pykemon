@@ -5,6 +5,9 @@ def clear():
     clear Clears all text from the terminal window to help create a distinction between different game menu screens in the terminal
     differentiates between linux and windows operating systems
 
+    Args: None
+    Returns: None
+
     Test:
         * works on both windows and Linux?
         * call should effectively clear terminal
@@ -18,6 +21,11 @@ def wait_for_keypress():
     """
     wait_for_keypress Waits for the user to leave an input, but does not store or return it
     Used to let the user read information before clearing the screen for example when moving to another menu
+
+    Args: None
+    Returns: None
+
+
     """
     input("press ENTER to continue")
 

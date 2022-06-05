@@ -84,12 +84,6 @@ def player_settings():
         else:
             print("invalid input given!")
     
-"""
-team settings main menu
-
-*inputs: none
-*outputs: none
-"""
 def team_settings():
     """
     team_settings Main menu to manage the players team of pokemon
