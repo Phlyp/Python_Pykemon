@@ -1,5 +1,15 @@
+"""Module Description
+    * collection of functions and classes to manage the players saved in the game
+    * saves currently active player with an abstract class
+    * includes methods and classes to create an intuitive ui to select and create a new player
+
+    author: Novadgaf and Phlyp
+    date: 05.06.2022
+    version: 1.0.0
+    license: free
+"""
+
 import sys
-import os
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtWidgets
 import pandas as pd
@@ -427,6 +437,33 @@ def player_selection():
     window.show()
     app.exec_()
 
+
+def player_exists(player_id):
+    """
+    player_exists Checks if a player with a given id exists in the players table
+
+    Args:
+        player_id (int): id of the player whose existence should be checked
+
+    Returns:
+        boolean: True if player has 1 entry in players table, False otherwise
+
+    Test:
+        * player_id should be of type int
+        * should correctly recognize if the player exists or not
+    """
+    if type(player_id) != int:
+        print("Error: player_id should be of type int")
+        print("Exiting game")
+        exit()
+
+    cursor.execute("SELECT * FROM players WHERE player_id = ?", (player_id,))
+    entries = len(cursor.fetchall())
+    if entries == 1:
+        return True
+    return False
+
+  
 def player_settings():
     """
     player_selection function to initialize the AppPlayerSettings GUI
@@ -441,3 +478,4 @@ def player_settings():
     window = AppPlayerSettings()
     window.show()
     app.exec()
+

@@ -1,25 +1,36 @@
+"""Module Description
+    * module to initialise and get general information about the entire database used for storing data in this app
+
+    author: Phlyp
+    date: 05.06.2022
+    version: 1.0.0
+    license: free
+"""
+
 import os
-import string
-from sys import meta_path
 import sqlite3 as sdb
 import pandas as pd
-from sqlalchemy.ext.declarative import declarative_base
 
-base = declarative_base()
 
 db_name = os.path.join("Data","db.sqlite")
 
 sqlite_conn = sdb.connect(db_name)
 sqlite_cursor = sqlite_conn.cursor()
 
-"""
-initialises and resets the database
 
-*inputs: none
-*outputs: none
-"""
 def initialise():
+    """
+    initialise initialises and resets the database
 
+    This function is called each time when the app is started
+
+    Args: None
+
+    Returns: None
+
+    Test: 
+        * successful exectution should lead to database with the tables [pokemon, attacks, players, team]
+    """    
     pokemon_data = pd.read_csv("Data/pokemon.csv", encoding='utf8')
     pokemon_data.to_sql("pokemon", sqlite_conn, index=False, if_exists="replace")
 
@@ -49,15 +60,25 @@ def initialise():
     sqlite_cursor.execute("INSERT OR REPLACE INTO players VALUES(0, 'bot', 1, 0, 0, 0, 0)")
     sqlite_conn.commit()
     
-"""
-checks if a table exists in the database
-
-*inputs: 
-    name: name of the table to check
-*outputs:
-    boolean: True or False depending on the table existing
-"""
 def table_exists(name):
+    """
+    table_exists Checks if a table exists in the database
+
+    Args:
+        name (string): Name of the table whose existence should be checked
+
+    Returns:
+        boolean: True if the table exists, False otherwise
+
+    Test:
+        * name should be of type string
+        * should correctly recognize if table exists or not
+    """
+    if type(name) != str:
+        print("Error: parameter should be of type string!")
+        print("Exiting game")
+        exit()
+
     sqlite_cursor.execute(''' SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name=? ''', (name,))
     if sqlite_cursor.fetchone()[0]==1:
         return True 

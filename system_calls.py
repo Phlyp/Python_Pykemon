@@ -6,6 +6,7 @@ def clear():
     differentiates between linux and windows operating systems
 
     Args: None
+    
     Returns: None
 
     Test:
@@ -23,6 +24,7 @@ def wait_for_keypress():
     Used to let the user read information before clearing the screen for example when moving to another menu
 
     Args: None
+    
     Returns: None
 
 
@@ -41,9 +43,15 @@ def get_number(question):
         int: User input number
 
     Test:
+        * question should be of type string
         * if the user does not give a number, the function should not accept it and ask again
         * return value should be int
     """
+    if type(question) != str:
+        print("Error: question should be of string")
+        print("Exiting game")
+        exit()
+
     while True:
         try:
             user_input = input(question)
