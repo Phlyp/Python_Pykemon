@@ -14,6 +14,7 @@ import pandas as pd
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 import teamSelection as team_sel
+import system_calls as syscal
 import sys
 from playerManager import player_exists
 
@@ -28,7 +29,7 @@ class AppTeamSettings(QMainWindow):
         self.title = 'team settings'
         self.left = 900
         self.top = 300
-        self.width = 320
+        self.width = 340
         self.height = 140
         self.initUI()
         self.player_id = player_id
@@ -48,25 +49,25 @@ class AppTeamSettings(QMainWindow):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
     
-        # Create player info
-        self.button_choose_team = QPushButton('choose your own team', self)
+        # Create create team button 
+        self.button_choose_team = QPushButton('create team', self)
         self.button_choose_team.move(20,20)
 
-        # Create change player button 
+        # Create random team button 
         self.button_random_team = QPushButton('random team', self)
         self.button_random_team.move(120,20)
 
-        # Create delete all players button 
+        # Create list team button 
         self.button_list_team = QPushButton('list team', self)
         self.button_list_team.move(220,20)
 
         # Create back button 
         self.button_back = QPushButton('back', self)
-        self.button_back.move(320,20)
+        self.button_back.move(20,60)
 
         # Create exit button 
-        self.button_exit = QPushButton('exit', self)
-        self.button_exit.move(420,20)
+        self.button_exit = QPushButton('exit game', self)
+        self.button_exit.move(120,60)
         
         # connect buttons to functions
         self.button_choose_team.clicked.connect(self.choose_team)
@@ -74,13 +75,50 @@ class AppTeamSettings(QMainWindow):
         self.button_list_team.clicked.connect(self.list_team)
         self.button_back.clicked.connect(self.back)
         self.button_exit.clicked.connect(self.exit)
+        self.show()
 
     def choose_team(self):
+        """
+        choose_team called when user clicks create team
+
+        opens a GUI from where the user can select their new individual team of up to 6 pokemon
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click create team button 
+        """
         delete_team(self.player_id)
-        team_sel.start_selection(self.player_id)
+        self.window = team_sel.App(self.player_id)
 
     def random_team(self):
+        """
+        random_team creates a new random team for the user 
+
+        Args: None
+        Returns: None
+
+        Test: 
+            * click random team button
+        """
+        syscal.clear()
         create_random_team(self.player_id)
+        list_team(self.player_id)
+
+    def list_team(self):
+        """
+        list_team Lists all the pokemon and their relevant information from the team of the player
+        
+        If the player does not have a team, does not throw an error, instead informs player that they do not have a team yet
+
+        Args: None
+        Returns: None
+
+        Test:
+            * successful execution should list team
+        """  
+        syscal.clear()
         list_team(self.player_id)
 
     def back(self):
@@ -122,7 +160,7 @@ def team_settings(player_id):
         * select Edit your team in the main menu by using the input 2+enter 
     """ 
     app = QApplication(sys.argv)
-    window = AppTeamSettings()
+    window = AppTeamSettings(player_id)
     window.show()
     app.exec()
 
@@ -219,15 +257,10 @@ def delete_team(player_id):
 
     Test:
         * player_id should be of type int
-        * player should already have a team
         * successful execution should delete team of player_id
     """    
     if type(player_id) != int:
         print("Error: player_id should be of type int")
-        print("Exiting game")
-        exit()
-    if team_size(player_id) == 0:
-        print("Error: player does not have a team")
         print("Exiting game")
         exit()
 

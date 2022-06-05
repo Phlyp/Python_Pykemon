@@ -326,7 +326,7 @@ class AppPlayerSettings(QMainWindow):
         self.button_back.move(320,20)
 
         # Create exit button 
-        self.button_exit = QPushButton('exit', self)
+        self.button_exit = QPushButton('exit game', self)
         self.button_exit.move(420,20)
 
         # connect buttons to functions
