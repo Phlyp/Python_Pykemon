@@ -34,7 +34,7 @@ def game_engine():
         sys.clear()
 
         if decision == "1":
-            player_settings()
+            player.player_settings()
         elif decision == "2":
             team_settings()
         elif decision == "3":
@@ -47,39 +47,6 @@ def game_engine():
         elif decision == "4":
             print("Goodbye!")
             quit()
-        else:
-            print("invalid input given!")
-
-
-def player_settings():
-    """
-    player_settings Main menu to manage the players
-
-    Args: None
-    Returns: None
-
-    Test:
-        * test inputs 1-4 and their expected outcomes
-        * other inputs should not be accepted 
-    """    
-    while True:
-        sys.clear()
-        print(f"Hello {player.current_player.name}, what would you like to do?")
-        print(" 1. Get player info \n 2. Create new / change player \n 3. Delete all players \n 4. Back to main menu")
-        decsision = input("Please use the Keys 1-4 + ENTER to choose what to do next! ")
-        sys.clear()
-
-        if decsision == "1":
-            player.get_player_info()
-            sys.wait_for_keypress()
-        elif decsision == "2":
-            player.player_selection()
-        elif decsision == "3":
-            player.delete_all_players()
-            team.delete_all_teams()
-        elif decsision == "4":
-            print("")
-            break
         else:
             print("invalid input given!")
     
