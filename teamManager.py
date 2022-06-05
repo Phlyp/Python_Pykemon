@@ -17,7 +17,7 @@ def add_pokemon_to_team(player_id, pokemon_id, count):
     print(f'{name} has joined your Team!')
     cursor.execute("SELECT hp FROM pokemon WHERE pokedex_number = ?", (pokemon_id+1,))
     hp = cursor.fetchone()[0]
-    cursor.execute("INSERT OR REPLACE INTO team(player_id, pokemon_order, pokedex_number, health, remaining_light, remaining_special) VALUES(?,?,?,?,?,?)", (player_id, count, pokemon_id, hp, 8, 6))
+    cursor.execute("INSERT OR REPLACE INTO team(player_id, pokemon_order, pokedex_number, health, remaining_light, remaining_special) VALUES(?,?,?,?,?,?)", (player_id, count, pokemon_id+1, hp, 8, 6))
     conn.commit()
 
 """

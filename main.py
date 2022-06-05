@@ -3,9 +3,9 @@ import system_calls as sys
 
 import database
 import teamManager as team
-import playerManager as player
 import fightManager as fight
-import selection as sel
+import teamSelection as team_sel
+import playerManager as player
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 import pygame
@@ -53,8 +53,8 @@ def player_settings():
     while True:
         sys.clear()
         print(f"Hello {player.current_player.name}, what would you like to do?")
-        print(" 1. Get player info \n 2. Create new player \n 3. Change current player \n 4. Delete all players \n 5. Back to main menu")
-        decsision = input("Please use the Keys 1-5 + ENTER to choose what to do next! ")
+        print(" 1. Get player info \n 2. Create new / change player \n 3. Delete all players \n 4. Back to main menu")
+        decsision = input("Please use the Keys 1-4 + ENTER to choose what to do next! ")
         sys.clear()
 
         if decsision == "1":
@@ -63,11 +63,9 @@ def player_settings():
         elif decsision == "2":
             player.create_new_player()
         elif decsision == "3":
-            player.change_current_player()
-        elif decsision == "4":
             player.delete_all_players()
             team.delete_all_teams()
-        elif decsision == "5":
+        elif decsision == "4":
             print("")
             break
         else:
@@ -84,12 +82,12 @@ def team_settings():
         sys.clear()
         print(f"Hello {player.current_player.name}, what would you like to do?")
         print(" 1. Choose your own Team\n 2. Create a random Team \n 3. List Team \n 4. Heal team \n 5. Back to main menu")
-        decision = input("Please use the Keys 1-4 + ENTER to choose what to do next! ")
+        decision = input("Please use the Keys 1-5 + ENTER to choose what to do next! ")
         sys.clear()
 
         if decision == "1":
             team.delete_team(player.current_player.id)
-            sel.start_selection(player.current_player.id)
+            team_sel.start_selection(player.current_player.id)
             sys.wait_for_keypress()
         elif decision == "2":
             team.create_random_team(player.current_player.id)
@@ -123,32 +121,8 @@ if __name__ == "__main__":
     database.initialise()
     sys.clear()
     print("Welcome to Pykemon!\n")
-    sys.wait_for_keypress()
 
-    if is_new_session:
-        sys.clear()
-        print("As you are starting Pykemon for the first time, you must first create a player!")
-        player.create_new_player()
-    else:
-        sys.clear()
-        print("Would you like to:")
-        print(" 1. Select an exisiting Player\n 2. Create a new player")
-        
-        while True:
-            decision = input("Please use the Keys 1-2 + ENTER to choose what to do next! ")
-
-            if decision == "1":
-                sys.clear()
-                print("Select your Player:")
-                player.change_current_player()
-                break
-            elif decision == "2":
-                sys.clear()
-                player.create_new_player()
-                break
-            else:
-                print("Invalid Input given!")
-                continue
+    player.create_new_player()
             
 
     game_engine()
