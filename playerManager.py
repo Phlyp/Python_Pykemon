@@ -22,7 +22,6 @@ from database import db_name
 conn = sqlite3.connect(db_name)
 cursor = conn.cursor()
 start_dollars = 1000
-player_changed = False
 
 """
 (abstract) class that saves the id and name of the current player for convenience
@@ -31,9 +30,6 @@ class current_player:
     id = 1
     name = ""
 
-"""
-    Class for player selection menu
-"""
 
 """
     Class to change player
@@ -50,6 +46,17 @@ class AppChangePlayer(QWidget):
         self.initUI()
         
     def initUI(self):
+        """
+        initUI initializes the UI
+
+        This UI enables the user to chose between pre created player profiles
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click select player button in the AppCreateNewPlayer GUI
+        """          
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
@@ -64,14 +71,18 @@ class AppChangePlayer(QWidget):
         self.show()
         self.table_widget.doubleClicked.connect(self.player_double_clicked)
 
-    """
-    prints all existing players in a gui
-    allows user to choose a player from list
-
-    *inputs: none
-    *outputs: none
-    """
     def createTable(self):
+        """
+        createTable creates a table
+
+        The table contains every aviable player profile and infos about the players 
+
+        Args: None
+        Returns: None
+
+        Test:
+            * check whether all non bot players from the db are in the table
+        """    
        # Create table
         self.table_widget = QTableWidget()
         self.table_widget.setRowCount(cursor.execute("SELECT COUNT(player_id) FROM players WHERE is_bot = 0").fetchone()[0]+1)
@@ -85,7 +96,6 @@ class AppChangePlayer(QWidget):
 
         players = cursor.execute("SELECT player_id,name,xp,level,dollars,high_score FROM players WHERE is_bot = 0").fetchall()
         
-
         for idxx,player in enumerate(players):
             player_id,name,xp,level,dollars,high_score = player
             idx = idxx+1
@@ -118,19 +128,22 @@ class AppChangePlayer(QWidget):
         self.table_widget.horizontalHeader().setStretchLastSection(True)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-    """
-    select player when double clicked
-
-    *inputs: none
-    *outputs: none
-    """
     def player_double_clicked(self):
+        """
+        player_double_clicked selects player when double clicked
+
+        this function selects a player from the table when the user is using a double click
+
+        Args: None
+        Returns: None
+
+        Test:
+            * double click a user in the table and check whether the welcome message or the user infos are correct
+        """    
         id = self.table_widget.currentIndex().row()
         if id != 0:
             current_player.id = id
             current_player.name = cursor.execute("SELECT name FROM players WHERE player_id = ?", (current_player.id,)).fetchone()[0]
-            global player_changed
-            player_changed = True
             self.close()
    
 
@@ -149,6 +162,17 @@ class AppCreateNewPlayer(QMainWindow):
         self.initUI()
     
     def initUI(self):
+        """
+        initUI initializes the UI
+
+        This UI enables the user to create a new user or open a GUI to choose between existing profiles
+
+        Args: None
+        Returns: None
+
+        Test:
+            * start the game or click change player button in player setting GUI
+        """    
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
     
@@ -177,14 +201,37 @@ class AppCreateNewPlayer(QMainWindow):
         self.button_close.clicked.connect(self.exit)
         self.show()
   
-    """
-    creates new player if the player doesn't exist yet
+    def closeEvent(self, event):
+        """
+        closeEvent called when the function self.close() is called or the user is trying to close the GUI using the x in the top right corner
 
-    *inputs: none
-    *outputs: none
-    """
+        if the user didn't chose or create a player exit the program otherwise close the GUI
+
+        Args: None
+        Returns: None
+
+        Test:
+            * close the GUI without chosing / creating a player -> program ends otherwise GUI will close and program will continue
+        """    
+        if current_player.name == "":
+            quit()
+
     def submit(self):
+        """
+        submit creates new player
+
+        tries to create a new player if the player doesn't exist yet and the input is valid -> != ""
+
+        Args: None
+        Returns: None
+
+        Test:
+            * type nothing / something in the textfield and click create player -> fail message / new player will be created if he doesn't exist yet and continue to main menu
+        """    
         name = self.player_name_textbox.text()
+        if name == "":
+            print('Please enter a valid name!')  
+            return
         cursor.execute("SELECT COUNT(*) FROM players WHERE name = ?", (name,))
         if cursor.fetchone()[0] > 0:
             print('Name already exists! Please enter a new name!')
@@ -204,21 +251,37 @@ class AppCreateNewPlayer(QMainWindow):
     *outputs: none
     """
     def exit(self):
-        global player_changed
-        if player_changed:
-            self.close()
-        else:
-            quit()
+        """
+        exit called when user clicks close
+
+        calls the function close() --> closeEvent()
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click close button program will end if no new user with valid name created and no existing user selected or continue with the created / selected user
+        """    
+        self.close()
         
 
     def change_gui(self):
-        global player_changed
-        player_changed = False
+        """
+        change_gui called when user clicks select player button
+
+        opens AppChangePlayer GUI
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click select player button player selection GUI will appear
+        """    
         self.window = AppChangePlayer()
 
 
 """
-    player main menu to chose between creating new player or selecting existing one
+    player menu to chose between several actions
 """
 class AppPlayerSettings(QMainWindow):
      # constructor
@@ -227,80 +290,151 @@ class AppPlayerSettings(QMainWindow):
         self.title = 'player settings'
         self.left = 900
         self.top = 300
-        self.width = 320
-        self.height = 140
+        self.width = 545
+        self.height = 300
         self.initUI()
     
     def initUI(self):
+        """
+        initUI initializes the UI
+
+        This UI enables the user interact with user profile settings / infos
+
+        Args: None
+        Returns: None
+
+        Test:
+            * go into Player Settings by pressing 1 + enter in the main menu 
+        """    
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
         # Create player info
         self.button_info = QPushButton('player info', self)
-        self.button_info.move(20,100)
+        self.button_info.move(20,20)
 
         # Create change player button 
-        self.button_change_window = QPushButton('change player', self)
-        self.button_change_window.move(120,100)
+        self.button_change_player = QPushButton('change player', self)
+        self.button_change_player.move(120,20)
 
         # Create delete all players button 
-        self.button_close = QPushButton('delete all players', self)
-        self.button_close.move(220,100)
+        self.button_delete_all_players = QPushButton('delete all players', self)
+        self.button_delete_all_players.move(220,20)
         
         # Create cancel button 
-        self.button_close = QPushButton('delete all players', self)
-        self.button_close.move(220,100)
+        self.button_back = QPushButton('back', self)
+        self.button_back.move(320,20)
+
+        # Create cancel button 
+        self.button_exit = QPushButton('exit', self)
+        self.button_exit.move(420,20)
 
         # connect buttons to functions
-        self.button_submit.clicked.connect(self.submit)
-        self.button_change_window.clicked.connect(self.change_gui)
-        self.button_close.clicked.connect(self.exit)
+        self.button_info.clicked.connect(self.info)
+        self.button_change_player.clicked.connect(self.change_player)
+        self.button_delete_all_players.clicked.connect(self.delete_all_players)
+        self.button_back.clicked.connect(self.back)
+        self.button_exit.clicked.connect(self.exit)
+
+        # create text area for user info
+        self.info_area = QPlainTextEdit(self)
+        self.info_area.move(20, 100)
+        self.info_area.resize(505, 150)
+        self.info_area.insertPlainText("press info to reveal your stats")
+        self.info_area.setReadOnly(True)
         self.show()
 
-"""
-starts create player gui
 
-*inputs: none
-*outputs: none
-"""
+    def info(self):
+        """
+        info called when user clicks player info
+
+        player info will appear in the text area
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click the player info button and check the text area for user name, xp, level, dollars, high score
+        """    
+        info = cursor.execute("SELECT player_id,name,xp,level,dollars,high_score FROM players WHERE player_id = ?", (current_player.id,)).fetchone()
+        self.info_area.setPlainText(f"\nName: {info[1]} \nXp: {info[2]} \nLevel: {info[3]} \nDollars: {info[4]} \nHigh Score: {info[5]}")
+
+    def change_player(self):
+        """
+        change_player called when user clicks change player
+
+        AppCreateNewPlayer GUI will appear
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click the change player button
+        """ 
+        self.window = AppCreateNewPlayer()
+
+    def delete_all_players(self):
+        """
+        delete_all_players called when user clicks delete all players
+
+        deletes all players from the database and lets the user create a new one
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click the delete all players button
+        """ 
+        cursor.execute("DELETE FROM players WHERE is_bot = 0")
+        conn.commit()
+        current_player.name = ""
+        self.window = AppCreateNewPlayer()
+
+    def back(self):
+        """
+        back called when user clicks back
+
+        gets the user back to the main menu
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click the back button
+        """ 
+        self.close()
+
+    def exit(self):
+        """
+        back called when user clicks exit
+
+        ends the program
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click the exit button
+        """ 
+        quit()
+    
+
+
 def player_selection():
+    """
+    player_selection function to initialize the AppCreateNewPlayer GUI
+
+    Args: None
+    Returns: None
+
+    Test:
+        * start the program
+    """ 
     app = QApplication(sys.argv)
     window = AppCreateNewPlayer()
     window.show()
     app.exec_()
-
-
-def get_player_info():
-    """
-    get_player_info Returns basic information on the current player
-
-    Args: None
-
-    Returns: None
-
-    Test:
-        * current_player.id should be of type int
-        * Should list correct information saved in players table
-    """
-    info = cursor.execute("SELECT player_id,name,xp,level,dollars,high_score FROM players WHERE player_id = ?", (current_player.id,)).fetchone()
-    print(f" {info[0]}. Name: {info[1]}, Xp: {info[2]}, Level: {info[3]}, Dollars: {info[4]}, High Score: {info[5]}")
-
-
-def delete_all_players():
-    """
-    delete_all_players Deletes all players in the players table and prompts user to create a new player
-
-    Args: None
-
-    Returns: None
-
-    Test:
-        * Bot player should not be deleted
-        * successful exectution should delete all players and allow user to create a new player
-    """
-    cursor.execute("DELETE FROM players WHERE is_bot = 0")
-    conn.commit()
-    player_selection()
 
 
 def player_exists(player_id):
@@ -327,3 +461,20 @@ def player_exists(player_id):
     if entries == 1:
         return True
     return False
+
+  
+def player_settings():
+    """
+    player_selection function to initialize the AppPlayerSettings GUI
+
+    Args: None
+    Returns: None
+
+    Test:
+        * select Player Settings in the main menu by using the input 1+enter 
+    """ 
+    app = QApplication(sys.argv)
+    window = AppPlayerSettings()
+    window.show()
+    app.exec()
+
