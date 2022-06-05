@@ -1,7 +1,7 @@
 """Module Description
     * collection of functions to manage the team of a player
 
-    author: Phlyp and hipman8
+    author: Phlyp and hipman8 and Novadgaf
     date: 05.06.2022
     version: 1.0.0
     license: free

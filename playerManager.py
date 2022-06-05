@@ -3,7 +3,7 @@
     * saves currently active player with an abstract class
     * includes methods and classes to create an intuitive ui to select and create a new player
 
-    author: Novadgaf and Phlyp
+    author: Novadgaf and Phlyp and hipman8
     date: 05.06.2022
     version: 1.0.0
     license: free
