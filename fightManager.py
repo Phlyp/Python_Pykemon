@@ -100,7 +100,7 @@ def choose_pokemon():
     logger.info("choosing pokemon")    
     teamManager.list_team(current_player.id)
 
-    team_size = team_size(current_player.id)
+    team_size = teamManager.team_size(current_player.id)
 
     decision = sys.get_number(f"Please use the Keys 1-{team_size} + ENTER to choose which pokemon to send into battle! ")
     while decision < 1 or decision > team_size:
