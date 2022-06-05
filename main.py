@@ -73,7 +73,7 @@ def player_settings():
             player.get_player_info()
             sys.wait_for_keypress()
         elif decsision == "2":
-            player.create_new_player()
+            player.player_selection()
         elif decsision == "3":
             player.delete_all_players()
             team.delete_all_teams()
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     sys.clear()
     print("Welcome to Pykemon!\n")
 
-    player.create_new_player()
+    player.player_selection()
             
     # starts the main menu game loop
     game_engine()

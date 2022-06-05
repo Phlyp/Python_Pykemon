@@ -253,7 +253,7 @@ starts create player gui
 *inputs: none
 *outputs: none
 """
-def create_new_player():
+def player_selection():
     app = QApplication(sys.argv)
     window = AppCreateNewPlayer()
     window.show()
@@ -278,4 +278,4 @@ deletes all players in the players table
 def delete_all_players():
     cursor.execute("DELETE FROM players WHERE is_bot = 0")
     conn.commit()
-    create_new_player()
+    player_selection()
