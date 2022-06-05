@@ -65,7 +65,10 @@ def game_engine():
 
 if __name__ == "__main__":
     # main program function initiatlises Database
-    os.remove("Pykemon.log")
+    try:
+        os.remove("Pykemon.log")
+    except:
+        pass
     logging.basicConfig(filename='Pykemon.log', encoding='utf-8', level=logging.DEBUG)
     logger = logging.getLogger("root")
     logger.info("Starting Game!")
