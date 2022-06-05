@@ -12,13 +12,20 @@ import pygame
 
 clear = lambda: os.system('cls')
 
-"""
-Main menu game loop
 
-*inputs: none
-*returns: none
-"""
 def game_engine():
+    """
+    game_engine Main menu game loop
+
+    This Loop functions as the main menu for the app, allowing the player to choose which sub-functionality to execute next
+
+    Args: None
+    Returns: None
+
+    Test:
+        * test inputs 1-4 and their expected outcomes
+        * other inputs should not be accepted
+    """                
     while True:
         sys.clear()
         print(f"Hello {player.current_player.name}, what would you like to do?")
@@ -43,13 +50,18 @@ def game_engine():
         else:
             print("invalid input given!")
 
-"""
-player settings main menu
 
-*inputs: none
-*returns: none
-"""
 def player_settings():
+    """
+    player_settings Main menu to manage the players
+
+    Args: None
+    Returns: None
+
+    Test:
+        * test inputs 1-4 and their expected outcomes
+        * other inputs should not be accepted 
+    """    
     while True:
         sys.clear()
         print(f"Hello {player.current_player.name}, what would you like to do?")
@@ -71,13 +83,17 @@ def player_settings():
         else:
             print("invalid input given!")
     
-"""
-team settings main menu
-
-*inputs: none
-*outputs: none
-"""
 def team_settings():
+    """
+    team_settings Main menu to manage the players team of pokemon
+
+    Args: None
+    Returns: None
+
+    Test:
+        * test inputs 1-4s and their expected outcomes
+        * other inputs should not be accepted 
+    """    
     while True:
         sys.clear()
         print(f"Hello {player.current_player.name}, what would you like to do?")
@@ -108,15 +124,8 @@ def team_settings():
         print("\n") 
 
 
-"""
-main program funcion
-checks if database exists, 
-    if not a new player must be created first
-    else prompts to select a player
-starts main menu loop
-
-"""
 if __name__ == "__main__":
+    # main program funcion initiatlises Database
     is_new_session = not database.table_exists("team")
     database.initialise()
     sys.clear()
@@ -124,5 +133,5 @@ if __name__ == "__main__":
 
     player.create_new_player()
             
-
+    # starts the main menu game loop
     game_engine()
