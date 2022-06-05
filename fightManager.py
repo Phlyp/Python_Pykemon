@@ -1,3 +1,12 @@
+"""Module Description
+    * module that enables a fight between two pokemon, the player and the bot
+
+    author: Phlyp and Novadgaf
+    date: 05.06.2022
+    version: 1.0.0
+    license: free
+"""
+
 from tokenize import Special
 import system_calls as sys
 import sqlite3

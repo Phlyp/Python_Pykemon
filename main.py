@@ -1,3 +1,12 @@
+"""Module Description
+    * Functions that define the main menus of the Pykemon game
+
+    author: Phlyp, hipman8 and Novadgaf
+    date: 05.06.2022
+    version: 1.0.0
+    license: free
+"""
+
 import os
 import system_calls as sys
 
@@ -20,6 +29,7 @@ def game_engine():
     This Loop functions as the main menu for the app, allowing the player to choose which sub-functionality to execute next
 
     Args: None
+    
     Returns: None
 
     Test:
@@ -55,6 +65,7 @@ def team_settings():
     team_settings Main menu to manage the players team of pokemon
 
     Args: None
+    
     Returns: None
 
     Test:
