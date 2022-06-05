@@ -2,10 +2,119 @@ import sqlite3
 from database import db_name
 import random
 import pandas as pd
+from PyQt5.QtWidgets import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+import teamSelection as team_sel
+import sys
 
 conn = sqlite3.connect(db_name)
 cursor = conn.cursor()
 
+
+class AppTeamSettings(QMainWindow):
+     # constructor
+    def __init__(self, player_id):
+        super().__init__()
+        self.title = 'team settings'
+        self.left = 900
+        self.top = 300
+        self.width = 320
+        self.height = 140
+        self.initUI()
+        self.player_id = player_id
+    
+    def initUI(self):
+        """
+        initUI initializes the UI
+
+        This UI enables the user to chose between some options regarding the team
+
+        Args: None
+        Returns: None
+
+        Test:
+            * select Edit your team option in the main menu by using the input 2+enter
+        """    
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+    
+        # Create player info
+        self.button_choose_team = QPushButton('choose your own team', self)
+        self.button_choose_team.move(20,20)
+
+        # Create change player button 
+        self.button_random_team = QPushButton('random team', self)
+        self.button_random_team.move(120,20)
+
+        # Create delete all players button 
+        self.button_list_team = QPushButton('list team', self)
+        self.button_list_team.move(220,20)
+
+        # Create back button 
+        self.button_back = QPushButton('back', self)
+        self.button_back.move(320,20)
+
+        # Create exit button 
+        self.button_exit = QPushButton('exit', self)
+        self.button_exit.move(420,20)
+        
+        # connect buttons to functions
+        self.button_choose_team.clicked.connect(self.choose_team)
+        self.button_random_team.clicked.connect(self.random_team)
+        self.button_list_team.clicked.connect(self.list_team)
+        self.button_back.clicked.connect(self.back)
+        self.button_exit.clicked.connect(self.exit)
+
+    def choose_team(self):
+        delete_team(self.player_id)
+        team_sel.start_selection(self.player_id)
+
+    def random_team(self):
+        create_random_team(self.player_id)
+        list_team(self.player_id)
+
+    def back(self):
+        """
+        back called when user clicks back
+
+        gets the user back to the main menu
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click the back button
+        """ 
+        self.close()
+
+    def exit(self):
+        """
+        back called when user clicks exit
+
+        ends the program
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click the exit button
+        """ 
+        quit()
+
+def team_settings(player_id):
+    """
+    team_settings function to initialize the AppTeamSettings GUI
+
+    Args: None
+    Returns: None
+
+    Test:
+        * select Edit your team in the main menu by using the input 2+enter 
+    """ 
+    app = QApplication(sys.argv)
+    window = AppTeamSettings()
+    window.show()
+    app.exec()
 
 def add_pokemon_to_team(player_id, pokemon_id, count):
     """
@@ -20,41 +129,39 @@ def add_pokemon_to_team(player_id, pokemon_id, count):
     cursor.execute("INSERT OR REPLACE INTO team(player_id, pokemon_order, pokedex_number, health, remaining_light, remaining_special) VALUES(?,?,?,?,?,?)", (player_id, count, pokemon_id+1, hp, 8, 6))
     conn.commit()
 
-"""
-creates a random team of six pokemon for a player
-
-*inputs: 
-    player_id (int): id of the player to create the team for
-*outputs: none
-"""
-def create_random_team(player_id):
-    delete_team(player_id)
-    if player_id != 0: print("Creating random Team!")
-    cursor.execute("SELECT * FROM pokemon")
-    rows = len(cursor.fetchall())
-
-    for i in range(6):
-        rand = random.randint(1, rows)
-        cursor.execute("SELECT hp FROM pokemon WHERE pokedex_number = ?", (rand,))
-        hp = cursor.fetchone()[0]
-        cursor.execute("INSERT OR REPLACE INTO team(player_id, pokemon_order, pokedex_number, health, remaining_light, remaining_special) VALUES(?,?,?,?,?,?)", (player_id, i+1, rand, hp, 8, 6))
-    conn.commit()
+def delete_team(player_id):
+        cursor.execute("DELETE FROM team WHERE player_id = ?", (player_id,))
+        conn.commit()
 
 # deletes all teams in the teams database
 def delete_all_teams():
     cursor.execute("DELETE FROM team")
     conn.commit()
 
-"""
-deletes the team of the player
 
-*inputs:
-    player_id (int): id of the player whose team should be deleted
-*outputs: none
-"""
-def delete_team(player_id):
-    cursor.execute("DELETE FROM team WHERE player_id = ?", (player_id,))
-    conn.commit()
+def create_random_team(player_id):
+        """
+        create_random_team called when user clicks random team
+
+        creates a random team of six pokemon for a player
+
+        Args: None
+        Returns: None
+
+        Test:
+            * click the random team button
+        """ 
+        delete_team(player_id)
+        if player_id != 0: print("Creating random Team!")
+        cursor.execute("SELECT * FROM pokemon")
+        rows = len(cursor.fetchall())
+
+        for i in range(6):
+            rand = random.randint(1, rows)
+            cursor.execute("SELECT hp FROM pokemon WHERE pokedex_number = ?", (rand,))
+            hp = cursor.fetchone()[0]
+            cursor.execute("INSERT OR REPLACE INTO team(player_id, pokemon_order, pokedex_number, health, remaining_light, remaining_special) VALUES(?,?,?,?,?,?)", (player_id, i+1, rand, hp, 8, 6))
+        conn.commit()
 
 """
 heals all pokemon in the team of the player
