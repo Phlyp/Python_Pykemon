@@ -1,15 +1,27 @@
+"""Module Description
+    * module that allows the player to manually choose which pokemon to add to his team
+    * Uses PyQT5 to open a widget with a table structure that the user can scroll through to view and select pokemon
+
+    author: Phlyp, Novadgaf and hipman8
+    date: 05.06.2022
+    version: 1.0.0
+    license: free
+"""
+
 import sys
 import os
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pandas as pd
 import teamManager as team
+from playerManager import player_exists
 
 class App(QWidget):
     """
     Class for pokemon selection menu
     """
 
+    # constructor
     def __init__(self, player_id):
         super().__init__()
         self.title = 'Pokemon List'
@@ -23,6 +35,16 @@ class App(QWidget):
         self.initUI()
         
     def initUI(self):
+        """
+        initUI Initialises the graphical Widget to choose the pokemon
+
+        Args: None
+
+        Returns: None
+
+        Test:
+            * successfully creates a widget window
+        """        
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         
@@ -38,6 +60,16 @@ class App(QWidget):
         self.table_widget.doubleClicked.connect(self.pokemon_double_clicked)
 
     def createTable(self):
+        """
+        createTable Creates a basic graphical table to choose the pokemon
+
+        Args: None
+
+        Returns: None
+
+        Test:
+            * successfully shows a table with all pokemon
+        """        
        # Create table
         self.table_widget = QTableWidget()
         self.table_widget.setRowCount(721)
@@ -66,8 +98,15 @@ class App(QWidget):
 
     def pokemon_double_clicked(self):
         """
-        if pokemon is double clicked add it to team
-        """
+        pokemon_double_clicked Function checks if a field in the table has been double clicked and adds that pokemon to the team
+
+        Args: None
+
+        Returns: None
+
+        Test:
+            * a double click should add the pokemon to the players team
+        """        
         self.poke_ID = self.table_widget.currentIndex().row()
         team.add_pokemon_to_team(self.player_id, self.poke_ID, self.count)
         self.count += 1
@@ -76,6 +115,28 @@ class App(QWidget):
 
     
 def start_selection(player_id):
+    """
+    start_selection _summary_
+
+    Args:
+        player_id (int): _description_
+    
+    Returns: None
+
+    Test:
+        * player_id should be of type int
+        * player should exist
+        * successfully starts the selection process
+    """    
+    if type(player_id) != int:
+        print("Error: player_id should be of type int")
+        print("Exiting game")
+        exit()
+    if player_exists(player_id) == False:
+        print("Error: player does not exist")
+        print("Exiting game")
+        exit()
+        
     app = QApplication(sys.argv)
     ex = App(player_id)
     app.exec_()

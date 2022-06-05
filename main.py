@@ -15,9 +15,8 @@ import teamManager as team
 import fightManager as fight
 import teamSelection as team_sel
 import playerManager as player
+import logging
 
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
-import pygame
 
 clear = lambda: os.system('cls')
 
@@ -35,7 +34,8 @@ def game_engine():
     Test:
         * test inputs 1-4 and their expected outcomes
         * other inputs should not be accepted
-    """                
+    """   
+    logger.info("Entering main menu")             
     while True:
         sys.clear()
         print(f"Hello {player.current_player.name}, what would you like to do?")
@@ -56,9 +56,11 @@ def game_engine():
                 fight.fight_engine()
         elif decision == "4":
             print("Goodbye!")
-            quit()
+            return
         else:
+            logger.warning("invalid input!")
             print("invalid input given!")
+            sys.wait_for_keypress()
     
 def team_settings():
     """
@@ -71,7 +73,8 @@ def team_settings():
     Test:
         * test inputs 1-4s and their expected outcomes
         * other inputs should not be accepted 
-    """    
+    """
+    logger.info("Entering Team Settings")    
     while True:
         sys.clear()
         print(f"Hello {player.current_player.name}, what would you like to do?")
@@ -98,12 +101,18 @@ def team_settings():
             print("")
             break
         else:
+            logger.warning("invalid input")
             print("invalid input given!")
         print("\n") 
 
 
 if __name__ == "__main__":
-    # main program funcion initiatlises Database
+    # main program function initiatlises Database
+    os.remove("Pykemon.log")
+    logging.basicConfig(filename='Pykemon.log', encoding='utf-8', level=logging.DEBUG)
+    logger = logging.getLogger("root")
+    logger.info("Starting Game!")
+
     is_new_session = not database.table_exists("team")
     database.initialise()
     sys.clear()
@@ -113,3 +122,5 @@ if __name__ == "__main__":
             
     # starts the main menu game loop
     game_engine()
+    logger.info("Leaving game!")
+    quit()

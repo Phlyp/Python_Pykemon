@@ -110,15 +110,10 @@ def delete_team(player_id):
 
     Test:
         * player_id should be of type int
-        * player should already have a team
         * successful execution should delete team of player_id
     """    
     if type(player_id) != int:
         print("Error: player_id should be of type int")
-        print("Exiting game")
-        exit()
-    if team_size(player_id) == 0:
-        print("Error: player does not have a team")
         print("Exiting game")
         exit()
 
