@@ -1,5 +1,15 @@
+"""Module Description
+    * collection of functions and classes to manage the players saved in the game
+    * saves currently active player with an abstract class
+    * includes methods and classes to create an intuitive ui to select and create a new player
+
+    author: Novadgaf and Phlyp
+    date: 05.06.2022
+    version: 1.0.0
+    license: free
+"""
+
 import sys
-import os
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pandas as pd
@@ -259,23 +269,61 @@ def player_selection():
     window.show()
     app.exec_()
 
-"""
-returns basic information on the current player
 
-*inputs: none
-*outputs: none
-"""
 def get_player_info():
+    """
+    get_player_info Returns basic information on the current player
+
+    Args: None
+
+    Returns: None
+
+    Test:
+        * current_player.id should be of type int
+        * Should list correct information saved in players table
+    """
     info = cursor.execute("SELECT player_id,name,xp,level,dollars,high_score FROM players WHERE player_id = ?", (current_player.id,)).fetchone()
     print(f" {info[0]}. Name: {info[1]}, Xp: {info[2]}, Level: {info[3]}, Dollars: {info[4]}, High Score: {info[5]}")
 
-"""
-deletes all players in the players table 
 
-*inputs: none
-*outputs: none
-"""
 def delete_all_players():
+    """
+    delete_all_players Deletes all players in the players table and prompts user to create a new player
+
+    Args: None
+
+    Returns: None
+
+    Test:
+        * Bot player should not be deleted
+        * successful exectution should delete all players and allow user to create a new player
+    """
     cursor.execute("DELETE FROM players WHERE is_bot = 0")
     conn.commit()
     player_selection()
+
+
+def player_exists(player_id):
+    """
+    player_exists Checks if a player with a given id exists in the players table
+
+    Args:
+        player_id (int): id of the player whose existence should be checked
+
+    Returns:
+        boolean: True if player has 1 entry in players table, False otherwise
+
+    Test:
+        * player_id should be of type int
+        * should correctly recognize if the player exists or not
+    """
+    if type(player_id) != int:
+        print("Error: player_id should be of type int")
+        print("Exiting game")
+        exit()
+
+    cursor.execute("SELECT * FROM players WHERE player_id = ?", (player_id,))
+    entries = len(cursor.fetchall())
+    if entries == 1:
+        return True
+    return False
