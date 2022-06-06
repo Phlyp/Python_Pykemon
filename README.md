@@ -4,7 +4,7 @@ DHBW Python Pokemon Projekt
 Authors: 
 * Philip Pruessner 7079160 (Phlyp)
 * Florian Strehlke 7800905 (hipman8)
-* Christian Lange  2463229 (Novadgaf)
+* Christian Lange  2463229 (Novadgaf) [twitch](https://www.twitch.tv/nowowova)
 
 Data was sourced from here: https://www.kaggle.com/datasets/rounakbanik/pokemon?resource=download
 
