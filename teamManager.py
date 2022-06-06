@@ -33,7 +33,7 @@ class AppTeamSettings(QWidget):
         self.left = 190
         self.top = 300
         self.width = 1575
-        self.height = 450
+        self.height = 478
         self.player_id = player_id
         self.initUI()
         
@@ -57,28 +57,27 @@ class AppTeamSettings(QWidget):
 
         # Create create team button 
         self.button_choose_team = QPushButton('create team', self.w)
-        self.button_choose_team.move(20,20)
 
         # Create random team button 
         self.button_random_team = QPushButton('random team', self.w)
-        self.button_random_team.move(120,20)
 
         # Create list team button 
         self.button_list_team = QPushButton('list team', self.w)
-        self.button_list_team.move(220,20)
+
+        # Create list team button 
+        self.button_enhance = QPushButton('enhance pokemon', self.w)
 
         # Create back button 
         self.button_back = QPushButton('back', self.w)
-        self.button_back.move(20,60)
 
         # Create exit button 
         self.button_exit = QPushButton('exit game', self.w)
-        self.button_exit.move(120,60)
         
         
         self.layout.addWidget(self.button_choose_team)
         self.layout.addWidget(self.button_random_team)
         self.layout.addWidget(self.button_list_team)
+        self.layout.addWidget(self.button_enhance)
         self.layout.addWidget(self.button_back)
         self.layout.addWidget(self.button_exit)
 
@@ -86,6 +85,7 @@ class AppTeamSettings(QWidget):
         self.button_choose_team.clicked.connect(self.choose_team)
         self.button_random_team.clicked.connect(self.random_team)
         self.button_list_team.clicked.connect(self.list_team)
+        self.button_enhance.clicked.connect(self.enhance)
         self.button_back.clicked.connect(self.back)
         self.button_exit.clicked.connect(self.exit)
 
@@ -179,6 +179,33 @@ class AppTeamSettings(QWidget):
             self.table_widget.setRowHeight(0, 256)
             self.table_widget.setColumnWidth(idx, 256)
         self.layout.addWidget(self.table_widget)
+        list_team(self.player_id)
+
+    def enhance(self):
+        syscal.clear()
+        pokemon_id = self.table_widget.currentColumn()+1
+        if pokemon_id == 0:
+            print("Please choose a pokemon to enhance. This will make it increase its hp by 50 for the cost of 500$.")
+            return
+        cursor.execute("SELECT * FROM team")
+        player_money = cursor.execute("SELECT dollars FROM players WHERE player_id = ?", (self.player_id,)).fetchone()[0]
+        if player_money<500:
+            print("You dont have enough dollars.\nPlease make sure that you have at least 500$ in order to upgrade the hp of your pokemon.")
+            return
+        sql_update_query = """UPDATE players SET dollars = ? WHERE player_id = ?"""
+        data = (player_money-500, self.player_id)
+        cursor.execute(sql_update_query, data)
+        cursor.execute("SELECT health FROM team WHERE pokemon_order = ? AND player_id = ?", (pokemon_id,self.player_id))
+        hp = cursor.fetchone()[0] +50
+        sql_update_query = """UPDATE team SET health = ? where pokemon_order = ? AND player_id = ?"""
+        data = (hp, pokemon_id, self.player_id)
+        cursor.execute(sql_update_query, data)
+        conn.commit()
+        cursor.execute("SELECT health FROM team WHERE pokemon_order = ? AND player_id = ?" , (pokemon_id, self.player_id))
+        hp1 = cursor.fetchone()[0]
+        list_team(self.player_id)
+        
+        
 
     def back(self):
         """
